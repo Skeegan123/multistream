@@ -30,10 +30,10 @@ function optimize_size(n) {
   var height = $(window).innerHeight() - 16;
   var width = $("#streams").width();
   if (!chat_hidden) {
-    var chat_width = 304;
+    var chat_width = 360;
     var wrapper_width = $("#wrapper").width();
     width = wrapper_width - chat_width - 5;
-    var chat_height = height - $("#tablist").height() - 24;
+    var chat_height = height - $("#tablist").height() - 60;
     $("#streams").width(width);
     $("#chatbox").width(chat_width);
     $(".stream_chat").height(chat_height);
@@ -110,8 +110,12 @@ function change_streams() {
   focus_last_stream_box();
 }
 
-function add_stream_item() {
-  $("#streamlist").append($(item_string));
+function add_stream_item(input) {
+  if (input === "Twitch") {
+    $("#streamlist_items").append($(twitch_string));
+  } else {
+    $("#streamlist_items").append($(yt_string));
+  }
   absolute_center($("#change_streams"));
   focus_last_stream_box();
 }
@@ -125,47 +129,92 @@ function stream_item_keyup(e) {
 }
 
 function stream_object(name) {
-  return $(
-    '<iframe id="embed_' +
-      name +
-      '" src="https://player.twitch.tv/?muted=true&channel=' +
-      name +
-      '&parent=multitwitch.tv&parent=www.multitwitch.tv" class="stream" allowfullscreen="true"></iframe>'
-  );
+  var out;
+  if (name[0] === "@") {
+    name = name.substring(1);
+    var newName = name.split("=")[0];
+    var newUrl = name.split("=")[1];
+    out = $('<iframe id="embed_' + 
+    newName + 
+    '" src="https://www.youtube.com/embed/' + 
+    newUrl + 
+    '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" class="stream" allowfullscreen></iframe>');
+  } else {
+    out = $(
+      '<iframe id="embed_' +
+        name +
+        '" src="https://player.twitch.tv/?muted=true&channel=' +
+        name +
+        '&parent=multistreamers.com&parent=www.multistreamers.com" class="stream" allowfullscreen="true"></iframe>'
+    );
+  }
+  return out;
 }
 
 function chat_object(name) {
-  return $(
-    '<div id="chat-' +
-      name +
-      '" class="stream_chat"><iframe frameborder="0" scrolling="no" id="chat-' +
-      name +
-      '-embed" src="https://twitch.tv/embed/' +
-      name +
-      '/chat?parent=multitwitch.tv&parent=www.multitwitch.tv" height="100%" width="100%"></iframe></div>'
-  );
+  var out;
+  if (name[0] === "@") {
+    name = name.substring(1);
+    var newName = name.split("=")[0];
+    var newUrl = name.split("=")[1];
+    out = $(
+      '<div id="chat-' +
+        newName +
+        '" class="stream_chat"><iframe frameborder="0" scrolling="no" id="chat-' +
+        newName +
+        '-embed" src="https://www.youtube.com/live_chat?is_popout=1&v=' +
+        newUrl +
+        '&embed_domain=multistreamers.com&parent=www.multistreamers.com" height="100%" width="100%"></iframe></div>'
+    );
+  } else {
+    out = $(
+      '<div id="chat-' +
+        name +
+        '" class="stream_chat"><iframe frameborder="0" scrolling="no" id="chat-' +
+        name +
+        '-embed" src="https://twitch.tv/embed/' +
+        name +
+        '/chat?darkpopout&parent=multistreamers.com&parent=www.multistreamers.com" height="100%" width="100%"></iframe></div>'
+    );
+  }
+  return out;
 }
 
 function chat_tab_object(name) {
+  if (name[0] === "@") {
+    name = name.substring(1);
+    name = name.split("=")[0];
+  }
   return $('<li><a href="#chat-' + name + '">' + name + "</a></li>");
 }
 
-var item_string =
-  '<div class="streamlist_item"><input type="text" class="stream_name" onkeyup="stream_item_keyup(event)" /></div>';
+var twitch_string =
+  '<div class="streamlist_item twitch_item"><input type="text" class="stream_name" placeholder="Twitch Streamer" onkeyup="stream_item_keyup(event)" /></div>';
+
+var yt_string =
+  '<div class="streamlist_item yt_item"><input type="text" class="streamer_name" placeholder="Youtube Streamer" onkeyup="stream_item_keyup(event)" /><input type="text" class="stream_id" placeholder="Livestream ID" onkeyup="stream_item_keyup(event)" /></div>'
 
 function update_stream_list() {
   // Update the contents of #streamlist to match streams
   $("#streamlist .streamlist_item").remove();
+  $("#streamlist_items .streamlist_item").remove();
+  var streamName;
   for (var i = 0; i < streams.length; i++) {
+
+    if (streams[i][0] === "@") {
+      streamName = streams[i].substring(1);
+      streamName = streamName.split("=")[0];
+    } else {
+      streamName = streams[i];
+    }
     $("#streamlist").append(
       $(
         '<div class="streamlist_item"><input type="checkbox" class="check" checked=true" /> <span>' +
-          streams[i] +
+          streamName +
           "</span></div>"
       )
     );
   }
-  $("#streamlist").append($(item_string));
 }
 
 function focus_last_stream_box() {
@@ -173,6 +222,12 @@ function focus_last_stream_box() {
   if (stream_boxes.length > 0) {
     stream_boxes[stream_boxes.length - 1].focus();
   }
+}
+
+function add_stream(name) {
+  $("#streams").append(stream_object(name));
+  $("#chatbox").append(chat_object(name));
+  $("#tablist").append(chat_tab_object(name));
 }
 
 function close_change_streams(apply) {
@@ -194,18 +249,36 @@ function close_change_streams(apply) {
       }
     }
     // add new streams
-    var new_stream_inputs = $("#streamlist .stream_name");
-    for (var i = 0; i < new_stream_inputs.length; i++) {
-      var stream_name = new_stream_inputs[i].value;
-      if (stream_name == "") {
-        continue;
+    var new_twitch_inputs = $(".twitch_item .stream_name");
+    var new_yt_names = $(".yt_item .streamer_name");
+    var new_yt_ids = $(".yt_item .stream_id");
+
+    if (new_twitch_inputs.length > 0) {
+      for (var i = 0; i < new_twitch_inputs.length; i++) {
+        var stream_name = new_twitch_inputs[i].value;
+        if (stream_name == "") {
+          continue;
+        }
+        new_streams.push(stream_name);
+        add_stream(stream_name);
+        chat_tabs.tabs("refresh");
       }
-      new_streams.push(stream_name);
-      $("#streams").append(stream_object(stream_name));
-      $("#chatbox").append(chat_object(stream_name));
-      $("#tablist").append(chat_tab_object(stream_name));
-      chat_tabs.tabs("refresh");
     }
+
+    if (new_yt_names.length > 0) {
+      for (var i = 0; i < new_yt_names.length; i++) {
+        var stream_name = new_yt_names[i].value;
+        var stream_id = new_yt_ids[i].value;
+        if (stream_name == "" || stream_id == "") {
+          continue;
+        }
+        var stream = "@" + stream_name + "=" + stream_id;
+        new_streams.push(stream);
+        add_stream(stream);
+        chat_tabs.tabs("refresh");
+      }
+    }
+    
     streams = new_streams;
     optimize_size(streams.length);
     var new_url = "";
