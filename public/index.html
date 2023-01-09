@@ -3,9 +3,126 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+    <title>MultiStream</title>
+    <meta name="description" content="Welcome to MultiStreamers! You can use this site to watch any number of twitch.tv and youtube.com streams at the same time (as long as your computer can handle it). Simply put the streams you want in the URL or use the change streams button below. For twitch streams simply add the streamer's channel to the url like so: multistreamers.com/skeegan123/. For youtube streams, first put an '@' symbol, followed by the streamers name, then an '=' sign and their video id like so: multistreamers.com/@LofiGirl=jfKfPfyJRdk. MultiStreamers will optimize the layout of streams to give you the maximum size on each of the streams, while maintaining aspect ratio. For the curious, the source of this page is available at github.com/Skeegan123/multistream. Happy streamwatching!">
+    <meta name="keywords" content="Twitch, Youtube, Stream, Streaming, Streamers, Live Stream, Multistream, Online Gaming, Esports, Video Game Streaming">
+    <meta name="robots" content="index, follow">
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script src="/static/js/multistream.js"></script>
+    <script src="/static/js/jquery-ui/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/static/css/multistream.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui.css">
+    <link rel="icon" href="/static/images/favicon.ico" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2ZR5ZZYP8R"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-2ZR5ZZYP8R');
+    </script>
+    <script type="text/javascript">
+      // Get the current URL
+      var currentUrl = window.location.href;
+
+      // Split the URL by '/' to get an array of arguments
+      var urlArgs = currentUrl.split('/');
+      // Remove the first 3 elements of the array
+      urlArgs.splice(0, 3);
+
+      // Get number of streams from length of array
+      var numArgs = urlArgs.length;
+      if (numArgs === 1 && urlArgs[0] === "") {
+          urlArgs = [];
+          numArgs = 0;
+      }
+
+      $(document).ready(function() {
+          absolute_center($("#helpbox"));
+          if (numArgs === 0) {
+              hide_chat();
+              $("#helpbox").css('display','block');
+          }
+
+          for (var i = 0; i < numArgs; i++) {
+            if (urlArgs[i] !== "") {
+              streams.push(urlArgs[i]);
+              add_stream(urlArgs[i]);
+            }
+          }
+
+          update_stream_list();
+      
+          // Setup tabs
+          chat_tabs = $("#chatbox").tabs();
+      
+          // Do this after all the jqueryui setup.
+          optimize_size(numArgs);
+          setTimeout(function(){
+              optimize_size(numArgs)
+              }, 500);
+      });
+      $(window).resize(function() {
+          absolute_center($("#helpbox"));
+          optimize_size(-1);
+      });
+      </script>
   </head>
   <body>
-    <h2>This is a github test</h2>
+    <div id="wrapper">
+      <div id="streams">
+          
+      </div>
+      
+      <div id="chatbox">
+      <ul id="tablist">
+      
+      </ul>
+      
+      </div>
+      
+      
+      <div id="helpbox">
+      <h1>MultiStreamers.com</h1>
+      <div id="helptext">
+      Welcome to MultiStreamers! You can use this site to watch any number of <a href="https://www.twitch.tv">twitch.tv</a> and <a href="https://www.youtube.com">youtube.com</a> streams at the same time (as long as your computer can handle it). Simply put the streams you want in the URL or use the change streams button below. For twitch streams simply add the streamer's channel to the url like so: <a href="/skeegan123/">multistreamers.com/skeegan123/</a>. For youtube streams, first put an '@' symbol, followed by the streamers name, then an '=' sign and their video id like so: <a href="/@LofiGirl=jfKfPfyJRdk">multistreamers.com/@LofiGirl=jfKfPfyJRdk</a>. MultiStreamers will optimize the layout of streams to give you the maximum size on each of the streams, while maintaining aspect ratio. For the curious, the source of this page is available at <a href="https://github.com/Skeegan123/multistream">github.com/Skeegan123/multistream</a>. Happy streamwatching!
+      <br>
+      <br>
+      PS: This site was heavily inspired by <a href="https://www.multitwitch.tv">multitwitch.tv</a> created by Brian Hamrick. I just wanted to update it and add support for youtube streams. It is a bit hacky right now but I tried to put this together as quickly as possible. I will hopefully be updating this somewhat regularly. Again this wouldnt have been possible without Brian's original work so I just wanted to thank him and give some credit. Enjoy!
+      </div>
+      
+      <div id="credits">
+      Created by Keegan Gaffney with help from Brian Hamrick's work
+      </div>
+      </div>
+      
+      <div id="change_streams" class="optionbox">
+          <div id="streamlist">
+            
+          </div>
+          
+          <div id="streamlist_items">
+          
+          </div>
+      
+          <div class="fullwidth centering">
+              <button onclick="add_stream_item('Twitch')">Add Twitch Stream</button>
+              <button onclick="add_stream_item('Youtube')">Add Youtube Stream</button>
+          </div>
+      
+          <div class="fullwidth">
+          <button type="button" class="left" onclick="close_change_streams(false)">Cancel</button>
+          <button type="button" class="right" onclick="close_change_streams(true)">Ok</button>
+          <div class="clear"></div>
+          </div>
+      </div>
+      
+      <div id="bottom_right_bar">
+      <button onclick="change_streams()">Change Streams</button>
+      <button onclick="toggle_chat()">Toggle Chat</button>
+      </div>
+      
+    </div>
   </body>
 </html>
