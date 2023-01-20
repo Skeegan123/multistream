@@ -151,7 +151,7 @@ function stream_object(name) {
         newName +
         '" src="https://www.youtube.com/embed/' +
         newUrl +
-        '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" class="stream" allowfullscreen></iframe>'
+        '?autoplay=1&mute=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" class="stream" allowfullscreen></iframe>'
     );
   } else {
     out = $(
