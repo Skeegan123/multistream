@@ -90,6 +90,14 @@ function hide_chat() {
   optimize_size(-1);
 }
 
+function hide_streams() {
+  $("#streams").hide();
+}
+
+function show_streams() {
+  $("#streams").show();
+}
+
 function show_chat() {
   chat_hidden = false;
   $("#chatbox").show();
@@ -99,8 +107,12 @@ function show_chat() {
 function toggle_chat() {
   if (chat_hidden) {
     show_chat();
+    if (screen.width <= 550) {
+      hide_streams();
+    }
   } else {
     hide_chat();
+    show_streams();
   }
 }
 
@@ -134,11 +146,13 @@ function stream_object(name) {
     name = name.substring(1);
     var newName = name.split("=")[0];
     var newUrl = name.split("=")[1];
-    out = $('<iframe id="embed_' + 
-    newName + 
-    '" src="https://www.youtube.com/embed/' + 
-    newUrl + 
-    '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" class="stream" allowfullscreen></iframe>');
+    out = $(
+      '<iframe id="embed_' +
+        newName +
+        '" src="https://www.youtube.com/embed/' +
+        newUrl +
+        '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" class="stream" allowfullscreen></iframe>'
+    );
   } else {
     out = $(
       '<iframe id="embed_' +
@@ -192,7 +206,7 @@ var twitch_string =
   '<div class="streamlist_item twitch_item"><input type="text" class="stream_name" placeholder="Twitch Streamer" onkeyup="stream_item_keyup(event)" /></div>';
 
 var yt_string =
-  '<div class="streamlist_item yt_item"><input type="text" class="streamer_name" placeholder="Youtube Streamer" onkeyup="stream_item_keyup(event)" /><input type="text" class="stream_id" placeholder="Livestream ID" onkeyup="stream_item_keyup(event)" /></div>'
+  '<div class="streamlist_item yt_item"><input type="text" class="streamer_name" placeholder="Youtube Streamer" onkeyup="stream_item_keyup(event)" /><input type="text" class="stream_id" placeholder="Livestream ID" onkeyup="stream_item_keyup(event)" /></div>';
 
 function update_stream_list() {
   // Update the contents of #streamlist to match streams
@@ -200,7 +214,6 @@ function update_stream_list() {
   $("#streamlist_items .streamlist_item").remove();
   var streamName;
   for (var i = 0; i < streams.length; i++) {
-
     if (streams[i][0] === "@") {
       streamName = streams[i].substring(1);
       streamName = streamName.split("=")[0];
@@ -278,7 +291,7 @@ function close_change_streams(apply) {
         chat_tabs.tabs("refresh");
       }
     }
-    
+
     streams = new_streams;
     optimize_size(streams.length);
     var new_url = "";
